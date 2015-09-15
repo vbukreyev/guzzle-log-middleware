@@ -249,19 +249,21 @@ class Logger
      *
      * @return Closure
      */
-    public function __invoke(callable $handler)
-    {
-        return function ($request, array $options) use ($handler) {
+  public function logHandler() {
 
-            // Only log requests if explicitly set to do so
-            if ($this->logRequests) {
-                $this->log($request);
-            }
+    return function (callable $handler) {
+      return function ($request, array $options) use ($handler) {
 
-            return $handler($request, $options)->then(
-                $this->onSuccess($request),
-                $this->onFailure($request)
-            );
-        };
-    }
+        // Only log requests if explicitly set to do so
+        if ($this->logRequests) {
+          $this->log($request);
+        }
+
+        return $handler($request, $options)->then(
+          $this->onSuccess($request),
+          $this->onFailure($request)
+        );
+      };
+    };
+  }
 }

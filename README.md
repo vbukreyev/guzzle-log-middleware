@@ -10,7 +10,7 @@
 ## Installation
 
 ```bash
-composer require rtheunissen/guzzle-log-middleware
+composer require vbukreyev/guzzle-log-middleware
 ```
 
 ## Usage
@@ -25,7 +25,35 @@ You can use either a [PSR-3](http://www.php-fig.org/psr/psr-3/) logger
 or a callable that accepts a log level, message, and context as an array.
 
 ```php
+$logger = new myLogger(); // should implements Psr\Log\LoggerInterface 
 $middleware = new Logger($logger);
+$middleware->setLogLevel(LogLevel::DEBUG);
+$middleware->setFormatter(new \GuzzleHttp\MessageFormatter(myLogger::MY_FORMAT));
+$middleware->setRequestLoggingEnabled(false);
+
+$stack = \GuzzleHttp\HandlerStack::create();
+$stack->push($middleware->logHandler());
+
+$client = new GuzzleHttp\Client([
+  
+  'handler' => $stack,
+  
+]);
+
+### 
+
+class myLogger  extends \Psr\Log\AbstractLogger {
+
+  const MY_FORMAT = "{hostname} {req_header_User-Agent} - [{date_common_log}] \"{method} {target} HTTP/{version}\" {code} {res_header_Content-Length} :: {req_body}";
+
+  public function log($level, $message, array $context = array()) {
+
+    file_put_contents('/tmp/my-logger.log', $message . PHP_EOL, FILE_APPEND);
+
+  }
+
+}
+
 ```
 
 or
